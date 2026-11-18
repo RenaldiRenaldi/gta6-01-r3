@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#14272d">
+  <title>Twelve Debts — A Solmara Story</title>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <canvas id="world" aria-label="Solmara, an open world crime story"></canvas>
+  <div id="vignette"></div>
+  <header id="top"><div class="wordmark">TWELVE <b>DEBTS</b><small>A SOLMARA STORY</small></div><div id="climate"></div><div id="vitals"></div></header>
+  <section id="job"><div class="eyebrow">THE CREW / STORY JOB</div><h2 id="jobname"></h2><p id="objective"></p><div id="jobprogress"></div></section>
+  <section id="pursuit"><div id="stars"></div><strong id="copstate"></strong><small id="copdetail"></small></section>
+  <section id="radio"><span class="signal">▮▮▮▮</span><b id="station">SOL WAVE <i>98.4</i></b><p id="dj"></p></section>
+  <div id="crosshair">+</div><div id="flash"></div><div id="toast" role="status" aria-live="polite"></div>
+  <aside id="mapwrap"><div class="maptitle"><b>SOLMARA</b><span id="district"></span></div><canvas id="map" width="180" height="160"></canvas><div id="collectibles"></div></aside>
+  <section id="telemetry"><div id="speed"></div><div id="vehicle"></div><div class="meter"><i id="nitro"></i></div><div id="weapon"></div></section>
+  <footer><span id="prompt"></span><small>T SEASONS · R RADIO · M MAP · ESC PAUSE</small></footer>
+  <div id="screen"><div class="intro"><div class="eyebrow">AN OPEN WORLD. FOUR SEASONS. ONE LAST SCORE.</div><h1>TWELVE<br><em>DEBTS</em></h1><p class="subtitle">A SOLMARA STORY</p><p id="introcopy">The city sold your neighborhood.<br>Steal back the evidence. Bring your crew home.</p><button id="start">ENTER SOLMARA <span>↵</span></button><p class="controls">WASD move / drive · Mouse aim · E enter / interact<br>Space brake · Shift sprint / NOS · J accept job · P photograph<br>Click fire · 1/2/3 weapons · H ascend / Ctrl descend in helicopter</p><p class="edition">12 STORY JOBS / 3 STREET RACES / 15 SECRETS / YOUR CITY, SAVED</p></div></div>
+  <div id="briefing" class="modal hidden"><div class="eyebrow" id="contact"></div><h2 id="brieftitle"></h2><p id="briefcopy"></p><p class="muted">Failure resets this job. Your completed jobs and purchases stay saved.</p><button id="accept">J · TAKE THE JOB</button></div>
+  <div id="shop" class="modal hidden"><div class="eyebrow">PEARL STREET / CREW SERVICES</div><h2>Spend it while you can.</h2><div id="goods"></div><button id="closeshop">E · BACK TO THE STREET</button></div>
+  <script type="module" src="./src/game.js"></script>
+</body>
+</html>

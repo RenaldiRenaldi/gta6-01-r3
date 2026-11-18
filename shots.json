@@ -1,0 +1,10 @@
+{
+  "viewport": { "width": 960, "height": 600 },
+  "format": "jpeg",
+  "shots": [
+    { "file": "1-spring.jpg", "url": "/?shot=spring", "season": "SPRING", "description": "Pearl Street in light showers with blossom trees and petals, safehouse and customs storefronts, armed player, parked and moving cars, story briefing, radio and minimap." },
+    { "file": "2-summer.jpg", "url": "/?shot=summer", "season": "SUMMER", "description": "Five-star summer heist getaway with Mariner GT, visible patrol cars and police helicopter, reactive Niko report, final heist phase and NOS telemetry." },
+    { "file": "3-autumn.jpg", "url": "/?shot=autumn", "season": "AUTUMN", "description": "Mara's flyable Kite above dense downtown rooftops, autumn trees and leaves, rooftop extraction objective, helicopter controls, airport and marina skyline." },
+    { "file": "4-winter.jpg", "url": "/?shot=winter", "season": "WINTER", "description": "Winter night getaway with snowfall, illuminated windows and shop signs, wet-road reflections and headlights, wanted level, helicopter support and radio." }
+  ]
+}
