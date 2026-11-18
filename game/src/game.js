@@ -164,7 +164,7 @@ function cameraAndMarkers(dt){
   if(game.shot==='autumn'){
     desired.set(p.x-45,p.y+31,p.z-55);look.set(p.x+30,p.y-45,p.z+55);
   }else if(game.shot==='spring'){
-    desired.set(p.x+9,5.2,p.z-16);look.set(p.x+2,2,p.z+8);
+    desired.set(p.x+9,4.8,p.z-16);look.set(p.x+2,3.8,p.z+8);
   }else if(game.shot){
     desired.set(p.x+10,6.3,p.z-17);look.set(p.x,2.1,p.z+8);
   }else if(!game.started){desired.set(20,11,-91);look.set(0,3,-38);}
@@ -191,7 +191,7 @@ function stageSeasonShot(name){
     // Real inventory and the open storefront are readable without hiding the street.
     game.traffic.slice(0,4).forEach((c,i)=>{Object.assign(c,{x:i%2?4:-4,z:-30+i*14,axis:1,dir:i%2?1:-1});c.heading=c.dir>0?0:Math.PI;syncCar(c);});
   }else if(name==='autumn'){
-    game.flying=game.parkedHeli;Object.assign(game.flying,{x:-96,z:85,y:105,heading:.7,speed:23});Object.assign(game.player,{x:-96,z:85,y:105,heading:.7});game.flying.mesh.position.set(-96,105,85);game.flying.mesh.rotation.y=.7;game.mission.index=6;game.mission.phase=1;game.mission.progress=3;
+    game.flying=game.parkedHeli;Object.assign(game.flying,{x:-140,z:-120,y:130,heading:.7,speed:23});Object.assign(game.player,{x:-140,z:-120,y:130,heading:.7});game.flying.mesh.position.set(-140,130,-120);game.flying.mesh.rotation.y=.7;game.mission.index=6;game.mission.phase=1;game.mission.progress=3;
     game.avatar.mesh.visible=false;game.dj='Mara on SOL WAVE: Luz is on the Glass Quarter roof. Keep the Kite steady and watch the crosswind.';
   }else {
     const z=name==='winter'?45:-16;game.car=game.garage[0];Object.assign(game.car,{x:0,z,y:0,heading:0,speed:38,nitro:.63});Object.assign(game.player,{x:0,z,y:0,heading:0});game.avatar.mesh.visible=false;game.car.flame.visible=true;game.combat.weapon=2;syncCar(game.car);

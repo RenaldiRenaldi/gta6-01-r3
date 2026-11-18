@@ -1,3 +1,4 @@
+import * as T from '../vendor/three.module.min.js';
 import { distance, clamp } from './config.js';
 import { createCar, spawnRivals, syncCar } from './actors.js';
 import { lineOfSight } from './city.js';
@@ -38,6 +39,7 @@ export function createMissions(game) {
 export function startMission(game) {
   const m=game.mission;if(m.index>=12)return;
   if(m.van)game.scene.remove(m.van.mesh);
+  for(const mesh of m.caseMeshes||[])game.scene.remove(mesh);m.caseMeshes=[];
   spawnRivals(game,[]);game.combat.targets=[];
   const j=JOBS[m.index];Object.assign(m,{status:'active',phase:0,timer:j.time,progress:0,kills:0,alarm:0,van:null,routeIndex:0,collected:0,casePoints:[],signal:100,started:false,failReason:''});
   clearPolice(game);game.health=Math.max(game.health,85);if(game.car)game.car.health=Math.max(85,game.car.health);
@@ -60,6 +62,7 @@ export function failMission(game,reason) {
 function completeMission(game) {
   const m=game.mission,j=JOBS[m.index];game.save.cash+=j.reward;game.save.done=m.index+1;saveGame(game.save);
   spawnRivals(game,[]);game.combat.targets=[];if(m.van){game.scene.remove(m.van.mesh);m.van=null;}
+  for(const mesh of m.caseMeshes||[])game.scene.remove(mesh);m.caseMeshes=[];
   m.index++;m.status=m.index===12?'complete':'briefing';
   game.notify(m.index===12?'PEARL STREET IS OURS / THE CREW MADE IT HOME':`DEBT CLEARED / +$${j.reward} / J FOR NEXT JOB`,8);
   game.radioMessage(m.index===12?'Niko: The reserve is back where it belongs. Solmara, this one is for you.':'Niko: Someone just put another dent in the port auction. Pearl Street is listening.',10);
@@ -133,9 +136,11 @@ export function updateMission(game,dt) {
     case 'combat':if(!m.started&&d<48)beginAmbush(game,4,j.goal);if(m.started&&game.combat.kills>=4)completeMission(game);break;
     case 'intercept':case 'convoy': {
       if(m.phase===0){
-        if(m.van.health<=0){m.phase=1;m.casePoints=j.type==='convoy'?[{x:m.van.x+4,z:m.van.z},{x:m.van.x-4,z:m.van.z+3}]:[{x:m.van.x+4,z:m.van.z}];game.commitCrime('reserve van robbery',3);game.notify('VEHICLE DISABLED / EXIT AND COLLECT THE CASES');}
+        if(m.van.health<=0){m.phase=1;m.casePoints=j.type==='convoy'?[{x:m.van.x+4,z:m.van.z},{x:m.van.x-4,z:m.van.z+3}]:[{x:m.van.x+4,z:m.van.z}];
+          m.caseMeshes=m.casePoints.map(p=>{const mesh=new T.Mesh(new T.BoxGeometry(1.1,.65,.7),new T.MeshStandardMaterial({color:0xf6cb80,emissive:0xa16729,emissiveIntensity:.4}));mesh.position.set(p.x,.5,p.z);game.scene.add(mesh);return mesh;});
+          game.commitCrime('reserve van robbery',3);game.notify('VEHICLE DISABLED / EXIT AND COLLECT THE CASES');}
         else if(j.type==='convoy'?m.routeIndex>=4:m.van.laps>=2)failMission(game,'The courier escaped');
-      }else if(m.phase===1){const c=m.casePoints[m.collected];if(!game.car&&!game.flying&&distance(p,c)<4){m.collected++;game.notify('EVIDENCE SECURED');if(m.collected===m.casePoints.length){m.phase=2;m.progress=0;}}}
+      }else if(m.phase===1){const c=m.casePoints[m.collected];if(!game.car&&!game.flying&&distance(p,c)<4){if(m.caseMeshes[m.collected])m.caseMeshes[m.collected].visible=false;m.collected++;game.notify('EVIDENCE SECURED');if(m.collected===m.casePoints.length){m.phase=2;m.progress=0;}}}
       else {if(!game.police.seen)m.progress+=dt;else m.progress=0;if(m.progress>=(j.type==='convoy'?10:8))completeMission(game);}break;
     }
     case 'defend':case 'broadcast': {

@@ -89,6 +89,12 @@ export function buildCity(scene) {
     const material=new T.MeshBasicMaterial({map:tex,side:T.DoubleSide});
     const panel=mesh(new T.PlaneGeometry(width,width*96/512),material,x,y,z);panel.rotation.y=rotation;signs.push(panel);return panel;
   }
+  const reflectionCanvas=document.createElement('canvas');reflectionCanvas.width=64;reflectionCanvas.height=256;
+  const rc=reflectionCanvas.getContext('2d'),reflectionGradient=rc.createRadialGradient(32,70,1,32,90,150);
+  reflectionGradient.addColorStop(0,'rgba(255,255,255,.9)');reflectionGradient.addColorStop(.4,'rgba(255,255,255,.35)');reflectionGradient.addColorStop(1,'rgba(255,255,255,0)');
+  rc.fillStyle=reflectionGradient;rc.fillRect(0,0,64,256);
+  rc.globalCompositeOperation='destination-out';for(let i=0;i<60;i++){rc.globalAlpha=random()*.75;rc.fillRect(0,random()*256,64,1+random()*3);}rc.globalAlpha=1;
+  const reflectionTexture=new T.CanvasTexture(reflectionCanvas);
   for(const [text,x,z,color] of [
     ['PALMETTO CUSTOMS',17,-49,'#7affdf'],['PEARL HOUSE',-18,-49,'#ffd2a2'],
     ['ESTRELLA / ARMS',-17,15,'#ff8b9e'],['SOL WAVE 98.4',17,79,'#ffcd75'],
@@ -99,9 +105,17 @@ export function buildCity(scene) {
     sign(text,x,4,z-4.56,12,color,Math.PI);
     box(x,3.1,z-5,12,.22,1.4,mats.cyan);
     for(const side of [-1,1]){box(x+side*3.5,1.7,z-4.58,2.3,2.4,.1,mats.dark);box(x+side*3.5,.3,z-5.3,2.6,.6,.7,mats.pink);}
-    const refl=ground(11,7,x,z-9,new T.MeshBasicMaterial({color,transparent:true,opacity:.08,depthWrite:false}),.049);reflections.push(refl);
+    const refl=ground(15,29,x*.48,z-15,new T.MeshBasicMaterial({color,map:reflectionTexture,transparent:true,opacity:.08,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}),.055);reflections.push(refl);
   }
   sign('SOLMARA',-6,11,219,24,'#fff2c7',Math.PI);
+  // Mission hardware stays in the world outside its job: terminals and the reserve vault.
+  for(const [x,z] of [[69,-192],[5,-64],[5,64]]){
+    box(x,1.2,z,1.1,2.4,.8,mats.dark);box(x,1.7,z-.42,.8,.55,.04,mats.cyan);
+    box(x,3.8,z,.12,4,.12,mats.metal);box(x,5.5,z,3,.12,.12,mats.metal);
+  }
+  box(136,2.2,252,8,4.4,7,mats.dark);box(136,2,248.4,5,3.6,.3,mats.metal);
+  const vaultWheel=mesh(new T.TorusGeometry(.7,.1,6,24),mats.white,136,2,248.17);
+  sign('PORT RESERVE / 12',136,5.2,248.1,10,'#ffcf86',Math.PI);
   // Palms line the promenade; broadleaf street trees carry seasonal colors.
   const crowns=[];
   function tree(x,z,palm=false) {

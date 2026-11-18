@@ -14,7 +14,7 @@ export function createEnvironment(scene,city) {
   const random=rng(940),positions=new Float32Array(1800*3);
   for(let i=0;i<1800;i++){positions[i*3]=(random()-.5)*160;positions[i*3+1]=random()*85;positions[i*3+2]=(random()-.5)*160;}
   const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(positions,3));
-  const particles=new T.Points(geometry,new T.PointsMaterial({color:0xffd0dc,size:.23,transparent:true,opacity:.8,depthWrite:false}));scene.add(particles);
+  const particles=new T.Points(geometry,new T.PointsMaterial({color:0xffd0dc,size:.32,transparent:true,opacity:.9,depthWrite:false,toneMapped:false}));scene.add(particles);
   const rainPositions=new Float32Array(900*6);
   for(let i=0;i<900;i++){const x=(random()-.5)*130,y=random()*65,z=(random()-.5)*130;rainPositions.set([x,y,z,x-.1,y+.9,z],i*6);}
   const rainGeometry=new T.BufferGeometry();rainGeometry.setAttribute('position',new T.BufferAttribute(rainPositions,3));
@@ -27,7 +27,7 @@ export function setSeason(e,scene,index) {
   e.city.groundMat.color.setHex(s.ground);e.city.mats.leaf.color.setHex(s.leaf);e.city.mats.roof.color.setHex(e.season===3?0xe4ebec:0xdcd2b8);
   e.city.mats.curb.color.setHex(e.season===3?0xc3d4dc:0xcec6b0);
   e.particles.material.color.setHex(e.season===2?0xf5a755:e.season===3?0xffffff:0xffb4d0);
-  e.particles.material.size=e.season===2?.3:e.season===3?.19:.18;
+  e.particles.material.size=e.season===2?.48:e.season===3?.29:.34;
   e.ambient.color.setHex(s.ambient);e.sun.color.setHex(s.sun);
 }
 export function updateEnvironment(game,dt) {
@@ -45,7 +45,8 @@ export function updateEnvironment(game,dt) {
   e.ambient.intensity=night?1.2:2.05;e.sun.intensity=night?.22:twilight?2.3:2.7;
   e.sun.position.set(-140,twilight?65:200,-90);
   e.city.buildingMats.forEach(m=>m.emissiveIntensity=night?.56:.13);
-  e.city.reflections.forEach(r=>r.material.opacity=e.wet*(night?.33:.12));
+  e.city.reflections.forEach(r=>r.material.opacity=e.wet*(night?.66:.16));
+  for(const c of [...game.traffic,...game.garage,...game.police.units])for(const beam of c.lights)beam.material.opacity=night?.34:.035;
   e.city.lamps.forEach(r=>r.material.opacity=night?.2:.02);
   e.particles.visible=e.season!==1;e.rain.visible=raining;
   e.particles.position.set(game.player.x,game.player.y,game.player.z);e.rain.position.set(game.player.x,game.player.y,game.player.z);
