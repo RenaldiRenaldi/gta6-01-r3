@@ -129,6 +129,8 @@ function interact(){
 let recovery=0;
 function simulation(dt){
   game.time+=dt;game.shake=Math.max(0,game.shake-dt);game.slow=Math.max(0,game.slow-dt);game.hitmark=Math.max(0,game.hitmark-dt);game.muzzle=Math.max(0,game.muzzle-dt);
+  if(game.shopOpen||game.ui.briefOpen){updateEnvironment(game,dt);return;}
+  if(game.inCover&&![...game.traffic,...game.garage,...game.police.units].some(c=>distance(c,game.player)<6))game.inCover=false;
   const steer=(input.held('a')||input.held('arrowleft')?1:0)-(input.held('d')||input.held('arrowright')?1:0);
   const drive={forward:input.held('w')||input.held('arrowup'),back:input.held('s')||input.held('arrowdown'),steer,boost:input.held('shift'),brake:input.held(' '),up:input.held('h')||input.held(' '),down:input.held('control')};
   if(!game.shopOpen&&!game.ui.briefOpen&&game.health>0){
@@ -144,6 +146,7 @@ function simulation(dt){
   if(!game.flying)game.parkedHeli.rotor.rotation.y+=dt*1.2;
   updateTraffic(game,dt);updatePolice(game,dt);updateCombat(game,dt);updateEnvironment(game,dt);
   if(!game.shopOpen&&!game.ui.briefOpen){updateMission(game,dt);updateActivities(game,dt);}
+  if(game.time%12<dt){game.save.season=game.env.season;game.save.hour=game.env.hour;saveGame(game.save);}
   if(game.health<=0||game.car?.health<=0||game.flying?.health<=0){
     recovery+=dt;if(recovery<dt*2){failMission(game,'The crew needs another chance');game.notify('BUSTED / CREW RECOVERY IN 3 SECONDS',4);}
     if(recovery>3){clearPolice(game);game.health=100;if(game.car)game.car.health=100;if(game.flying){game.flying.health=140;game.flying.x=-256;game.flying.z=192;game.flying.y=0;}game.car=null;game.flying=null;game.avatar.mesh.visible=true;Object.assign(game.player,{x:0,z:-64,y:0});game.save.cash=Math.max(0,game.save.cash-200);saveGame(game.save);game.ui.closeBrief();recovery=0;}
@@ -154,10 +157,12 @@ function simulation(dt){
 }
 function cameraAndMarkers(dt){
   const p=game.player,target=missionTarget(game);
+  for(const person of game.people)person.mesh.visible=distance(person,p)<(game.flying?100:125);
+  for(const car of game.traffic)car.mesh.visible=car===game.car||distance(car,p)<(game.flying?210:185);
   if(target){beacon.visible=true;beacon.position.set(target.x,(target.y||0)+4.5,target.z);targetRing.visible=true;targetRing.position.set(target.x,(target.y||0)+.15,target.z);}else {beacon.visible=false;targetRing.visible=false;}
   const desired=new T.Vector3(),look=new T.Vector3();
   if(game.shot==='autumn'){
-    desired.set(p.x-36,p.y+23,p.z-48);look.set(p.x+24,p.y-21,p.z+36);
+    desired.set(p.x-45,p.y+31,p.z-55);look.set(p.x+30,p.y-45,p.z+55);
   }else if(game.shot==='spring'){
     desired.set(p.x+9,5.2,p.z-16);look.set(p.x+2,2,p.z+8);
   }else if(game.shot){
@@ -192,11 +197,11 @@ function stageSeasonShot(name){
     const z=name==='winter'?45:-16;game.car=game.garage[0];Object.assign(game.car,{x:0,z,y:0,heading:0,speed:38,nitro:.63});Object.assign(game.player,{x:0,z,y:0,heading:0});game.avatar.mesh.visible=false;game.car.flame.visible=true;game.combat.weapon=2;syncCar(game.car);
     game.mission.index=11;game.mission.phase=1;game.mission.timer=96;game.police.heat=5;game.police.mode='VISUAL CONTACT';game.police.seen=true;game.police.lastSeen={x:0,z};game.police.dispatch=100;game.police.blockTimer=100;
     for(const [x,offset] of [[-4,-8],[5,-13],[-4,20]]){const c=createCar(scene,x,z+offset,0x2c5f78,'POLICE');c.heading=0;c.speed=24;c.route=[];c.repath=1;syncCar(c);game.police.units.push(c);}
-    game.police.heli=createHelicopter(scene,-5,z+31,0x345667);Object.assign(game.police.heli,{x:-5,z:z+31,y:19});game.police.heli.mesh.position.set(-5,19,z+31);
+    game.police.heli=createHelicopter(scene,-5,z+34,0x345667);Object.assign(game.police.heli,{x:-5,z:z+34,y:11});game.police.heli.mesh.position.set(-5,11,z+34);
     game.dj=name==='summer'?'Niko: FIVE STARS! Air unit over Pearl Street. The reserve is in your trunk. Bring the crew home.':'Niko after dark: Snow, slick roads and a five-star lockdown. Pearl House is still waiting for you.';
     game.traffic.slice(0,4).forEach((c,i)=>{Object.assign(c,{x:i%2?4:-4,z:z+24+i*18,axis:1,dir:1});c.heading=0;syncCar(c);});
   }
-  Object.assign(game.avatar,game.player);posePerson(game.avatar,0);game.ui.draw(0);game.cameraSnap=true;
+  Object.assign(game.avatar,game.player);posePerson(game.avatar,0);game.avatar.gun.visible=name==='spring';game.avatar.longBarrel.visible=name==='spring';game.ui.draw(0);game.cameraSnap=true;
 }
 if(shot)stageSeasonShot(shot);
 let last=performance.now(),frames=0;
@@ -210,7 +215,7 @@ function frame(now){
     game.police.units.forEach(c=>syncCar(c,game.time));game.speed=game.car?.speed||game.flying?.speed||0;
   }else if(game.started&&!game.paused)simulation(dt);
   cameraAndMarkers(realDt||.016);game.ui.draw(realDt);renderer.render(scene,camera);
-  presses.clear();frames++;if(frames>15)window.__shotReady=true;
+  presses.clear();frames++;if(frames>2)window.__shotReady=true;
 }
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
 document.addEventListener('visibilitychange',()=>{keys.clear();mouseDown=false;if(document.hidden&&game.started&&!game.shot){game.paused=true;document.getElementById('screen').classList.remove('hidden');}});

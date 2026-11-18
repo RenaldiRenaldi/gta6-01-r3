@@ -1,6 +1,7 @@
 {
   "viewport": { "width": 960, "height": 600 },
   "format": "jpeg",
+  "capture": "Direct Chromium screenshot; unedited; maximum 81920 bytes per image",
   "shots": [
     { "file": "1-spring.jpg", "url": "/?shot=spring", "season": "SPRING", "description": "Pearl Street in light showers with blossom trees and petals, safehouse and customs storefronts, armed player, parked and moving cars, story briefing, radio and minimap." },
     { "file": "2-summer.jpg", "url": "/?shot=summer", "season": "SUMMER", "description": "Five-star summer heist getaway with Mariner GT, visible patrol cars and police helicopter, reactive Niko report, final heist phase and NOS telemetry." },

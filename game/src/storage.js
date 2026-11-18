@@ -9,6 +9,12 @@ export function loadSave() {
     const s={...freshSave(),...saved};
     s.done=Math.max(0,Math.min(12,Number(s.done)||0));
     for(const k of ['weapons','ammo','upgrades','packages','races','jumps']) if(!Array.isArray(s[k])) s[k]=freshSave()[k];
+    s.cash=Math.max(0,Number.isFinite(s.cash)?s.cash:2800);
+    s.weapons=[...new Set([0,...s.weapons.filter(i=>[0,1,2].includes(i))])];
+    s.ammo=[0,1,2].map(i=>Math.max(0,Math.floor(Number(s.ammo[i])||0)));
+    s.packages=[...new Set(s.packages.filter(i=>Number.isInteger(i)&&i>=0&&i<15))];
+    s.jumps=[...new Set(s.jumps.filter(i=>Number.isInteger(i)&&i>=0&&i<3))];
+    s.races=[0,1,2].map(i=>Number.isFinite(s.races[i])&&s.races[i]>0?s.races[i]:null);
     return s;
   } catch { return freshSave(); }
 }

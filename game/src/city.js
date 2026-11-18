@@ -43,7 +43,7 @@ export function buildCity(scene) {
   // Window atlases are generated locally. The repeated bays are architectural,
   // while lit rooms break the regularity and remain visible from the air at night.
   const buildingMats=[];
-  const colors=['#a9b5b4','#d8c6b4','#9baeb2','#c9ae9d','#7c9fa8','#b7bdba'];
+  const colors=['#7fa9ab','#e1b9a0','#879eaf','#da9d91','#619aaf','#b8c8b6'];
   for(let i=0;i<6;i++) {
     const canvas=document.createElement('canvas');canvas.width=128;canvas.height=256;
     const c=canvas.getContext('2d');c.fillStyle=colors[i];c.fillRect(0,0,128,256);
@@ -103,19 +103,21 @@ export function buildCity(scene) {
   }
   sign('SOLMARA',-6,11,219,24,'#fff2c7',Math.PI);
   // Palms line the promenade; broadleaf street trees carry seasonal colors.
+  const crowns=[];
   function tree(x,z,palm=false) {
     box(x,3,z,.45,6,.45,mats.trunk);
     if(palm){for(let a=0;a<6;a++)box(x+Math.sin(a*1.047)*1.8,6,z+Math.cos(a*1.047)*1.8,.7,.3,5,mats.leaf,a*1.047);}
-    else {const crown=mesh(new T.IcosahedronGeometry(2.35,0),mats.leaf,x,6.4,z);crown.scale.y=1.15;trees.push(crown);}
+    else {crowns.push({x,y:6.4,z});trees.push({x,z});}
     box(x,.25,z,2.6,.4,2.6,mats.curb);
   }
+  const lampGlow=new T.MeshBasicMaterial({color:0xffd5a0,transparent:true,opacity:.07,depthWrite:false});
   for(let i=-4;i<=4;i++)for(let j=-4;j<=4;j++) {
     tree(i*64-12,j*64+21,i>=3);tree(i*64+12,j*64-18,i>=3);
     for(const side of [-1,1]){
       const x=i*64+side*11,z=j*64-8;
       box(x,3.6,z,.18,7.2,.18,mats.dark);box(x-side*1,7.15,z,2.4,.18,.5,mats.dark);
       box(x-side*1,7.05,z,.7,.12,.45,mats.lamp);
-      const halo=ground(7,10,x-side*2,z,new T.MeshBasicMaterial({color:0xffd5a0,transparent:true,opacity:.07,depthWrite:false}),.05);lamps.push(halo);
+      box(x-side*2,.05,z,7,.012,10,lampGlow);lamps.push({material:lampGlow});
       box(x,2.8,z-1.2,.6,1.6,.5,mats.dark);box(x,3.2,z-1.49,.32,.3,.02,mats.red);
     }
   }
@@ -152,6 +154,8 @@ export function buildCity(scene) {
   // Three physical ramps, not menu actions. Their sloped deck is used by driving physics.
   const ramps=[{x:0,z:226,dir:0},{x:-128,z:45,dir:0},{x:192,z:-174,dir:0}];
   for(const r of ramps){const ramp=mesh(new T.BoxGeometry(7,.5,12),mats.yellow,r.x,1.4,r.z);ramp.rotation.x=.21;sign('JUMP / KEEP IT PINNED',r.x-8,3.5,r.z+5,9,'#ffce75',Math.PI);}
+  const crownBatch=new T.InstancedMesh(new T.IcosahedronGeometry(2.35,1),mats.leaf,crowns.length);
+  crowns.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.scale.set(1,1.2,.95);dummy.rotation.set(0,i*.53,0);dummy.updateMatrix();crownBatch.setMatrixAt(i,dummy.matrix);});scene.add(crownBatch);
   for(const [material,entries] of groups){
     const batch=new T.InstancedMesh(boxGeometry,material,entries.length);
     for(let i=0;i<entries.length;i++){const b=entries[i];dummy.position.set(b.x,b.y,b.z);dummy.scale.set(b.w,b.h,b.d);dummy.rotation.set(0,b.ry,0);dummy.updateMatrix();batch.setMatrixAt(i,dummy.matrix);}
@@ -179,7 +183,8 @@ export function lineOfSight(city,a,b) {
       if(Math.abs(direction)<.00001){if(origin<min||origin>max){lo=2;break;}}
       else {let t0=(min-origin)/direction,t1=(max-origin)/direction;if(t0>t1)[t0,t1]=[t1,t0];lo=Math.max(lo,t0);hi=Math.min(hi,t1);}
     }
-    if(lo<=hi&&hi>0&&lo<1&&ay+(by-ay)*Math.max(0,lo)<box.h)return false;
+    const entryY=ay+(by-ay)*Math.max(0,lo),exitY=ay+(by-ay)*Math.min(1,hi);
+    if(lo<=hi&&hi>0&&lo<1&&Math.min(entryY,exitY)<box.h)return false;
   }
   return true;
 }

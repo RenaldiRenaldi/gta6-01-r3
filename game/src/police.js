@@ -8,7 +8,7 @@ export function createPolice() {
 }
 export function reportCrime(game,kind,amount=1) {
   const p=game.police;
-  if(p.crimeCooldown>0&&kind!=='gunfire')return;
+  if(p.crimeCooldown>0&&amount<1&&kind!=='gunfire')return;
   p.crimeCooldown=.8;p.heat=clamp(p.heat+amount,0,5);p.lastSeen={x:game.player.x,z:game.player.z};p.lost=0;
   game.radioMessage(`Niko: Reports of ${kind} in ${game.district()}. A ${game.car?'Mariner':'suspect'} is on the move.`,9);
 }
@@ -82,6 +82,7 @@ export function updatePolice(game,dt) {
     syncCar(c,game.time);
   }
   if(stars>=3&&!p.heli){p.heli=createHelicopter(game.scene,p.lastSeen.x-75,p.lastSeen.z+45,0x345667);p.heli.y=48;}
+  if(p.heli&&stars<3&&p.lost>8){game.scene.remove(p.heli.mesh);p.heli=null;}
   if(p.heli){
     const h=p.heli;h.rotor.rotation.y+=dt*34;h.tail.rotation.x+=dt*29;
     const focus=p.lastSeen,hunt={x:focus.x+Math.sin(game.time*.25)*27,z:focus.z+Math.cos(game.time*.25)*27};

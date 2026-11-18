@@ -41,6 +41,6 @@ export function updateActivities(game,dt) {
       const previous=game.save.races[a.index];if(previous===null||a.time<previous)game.save.races[a.index]=Math.round(a.time*100)/100;
       game.save.cash+=r.reward;saveGame(game.save);game.notify(`RACE WON / ${a.time.toFixed(2)}s / +$${r.reward}`,6);a.race=null;
     }}
-    if(a.race&&(a.remaining<=0||game.health<=0)){a.race=null;game.notify('TIME TRIAL FAILED / RETURN TO THE GRID');}
+    if(a.race&&(a.remaining<=0||game.health<=0||game.car?.health<=0)){a.race=null;game.notify('TIME TRIAL FAILED / RETURN TO THE GRID');}
   }
 }

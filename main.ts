@@ -6,6 +6,7 @@ import { buildDossier } from './vendor/makefun-game.ts';
 // The runtime hands off a deterministic offline game, never a network service.
 const source = fileURLToPath(new URL('.', import.meta.url));
 const destination = resolve(process.env.MAKEFUN_OUTPUT_DIR || '/output');
+if (destination === resolve(source)) throw new Error('Output must be separate from the source tree');
 mkdirSync(destination, { recursive: true });
 for (const directory of ['game', 'screenshots']) {
   cpSync(join(source, directory), join(destination, directory), { recursive: true });

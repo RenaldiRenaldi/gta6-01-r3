@@ -23,8 +23,8 @@ export const headingTo = (a,b) => Math.atan2(b.x-a.x,b.z-a.z);
 export const wrap = a => Math.atan2(Math.sin(a),Math.cos(a));
 export function rng(seed=18419) { return () => { seed=(Math.imul(seed,1664525)+1013904223)>>>0; return seed/4294967296; }; }
 export function district(p) {
-  if(p.x < -210 && p.z > 110) return 'AIRPORT / WEST APRON';
-  if(p.z > 220) return 'LANTERN MARINA';
+  if(p.x < -210 && p.z > 100) return 'AIRPORT / WEST APRON';
+  if(p.z > 220 && p.x > 70) return 'LANTERN MARINA';
   if(p.x > 180) return 'SUNBREAK PROMENADE';
   if(p.x > 25 && p.z > 15 && p.z < 200) return 'THE GLASS QUARTER';
   if(p.z < -150) return 'ALTA VISTA';

@@ -57,6 +57,7 @@ export function createInterface(game) {
       $('dj').textContent=game.dj;$('station').innerHTML=game.radioOn?'SOL WAVE <i>98.4</i>':'RADIO <i>OFF</i>';
       $('district').textContent=district(game.player).split(' / ')[0];
       $('collectibles').textContent=`▧ ${game.save.packages.length}/15   ⚑ ${game.save.races.filter(r=>r!==null).length}/3   ↗ ${game.save.jumps.length}/3`;
+      $('map').setAttribute('aria-label',`Minimap of ${district(game.player)}. Teal objective, amber races and services, red police.`);
       $('speed').innerHTML=game.car||game.flying?`${String(Math.round(Math.abs(game.speed)*3.6)).padStart(3,'0')}<small>${game.flying?'AIR KM/H':'KM/H'}</small>`:'<small>ON FOOT</small>';
       $('vehicle').textContent=game.flying?`MARA’S KITE / ALT ${Math.round(game.player.y)} M`:game.car?game.car.kind:'DANI CRUZ / PEARL CREW';
       $('nitro').style.width=(game.car?game.car.nitro*100:game.flying?game.flying.health/1.4:game.health)+'%';

@@ -6,7 +6,7 @@ export function bootAudio() {
     motor=context.createOscillator();motor.type='sawtooth';motorGain=context.createGain();motorGain.gain.value=0;
     motor.connect(motorGain).connect(master);motor.start();
   }
-  context.resume();
+  if(context.state==='suspended')context.resume().catch(()=>{});
 }
 export function tone(f,duration=.12,type='sine',volume=.25,slide=0) {
   if(!context||!enabled)return;
@@ -22,7 +22,7 @@ export function noise(duration=.2,volume=.3) {
   const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;gain.gain.value=volume;
   source.connect(gain).connect(master);source.start();
 }
-export function gunSound(index){noise(index===1?.22:.09,index===1?.8:.45);tone(index===2?90:160,.14,'triangle',.3,35);}
+export function gunSound(index){noise(index===1?.22:.09,index===1?.8:.45);tone(index===2?90:160,.14,'triangle',.3,35);if(index===1)tone(58,.25,'sine',.35,26);}
 export function thunder(){noise(2.4,.7);tone(42,2,'sine',.55,22);}
 export function tickAudio(dt,speed,wanted,radioOn) {
   if(!context)return;

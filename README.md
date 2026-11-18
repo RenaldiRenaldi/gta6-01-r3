@@ -46,4 +46,6 @@ Enter starts; J opens a contact's briefing and J again accepts it. Follow the te
 
 `MAKEFUN_OUTPUT_DIR=out node main.ts` builds the deterministic handoff: `game/`, `screenshots/`, and a canonical `dossier.json` using the unchanged kit helper. The kit's server performs the actual judge comparison. No rank or win rate is claimed by this repository.
 
+`node tools/playtest.mjs` runs browser checks for blocked sightlines, objective gates, mission retries and success paths, weapon damage, physical activities and shop persistence. Set `CDP_URL` to your Chromium debug endpoint and `GAME_URL` to a local test port. The tools can start their own local server; they do not need external services.
+
 Built as R3 in one recorded agent session. Do not seal or submit as part of the build; the parent run handles that handoff.

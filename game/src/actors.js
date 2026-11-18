@@ -4,13 +4,41 @@ import { moveOnStreets, lineOfSight, surfaceHeight } from './city.js';
 import { gunSound, noise } from './audio.js';
 
 const shared={box:new T.BoxGeometry(1,1,1),wheel:new T.CylinderGeometry(.43,.43,.28,10),sphere:new T.SphereGeometry(1,12,8)};
-const material=(color,extra={})=>new T.MeshStandardMaterial({color,roughness:.5,...extra});
+const materialCache=new Map();
+const material=(color,extra={})=>{
+  const key=color+JSON.stringify(extra);
+  if(!materialCache.has(key))materialCache.set(key,new T.MeshStandardMaterial({color,roughness:.5,...extra}));
+  return materialCache.get(key);
+};
+const basicCache=new Map();
+function basic(color){if(!basicCache.has(color))basicCache.set(color,new T.MeshBasicMaterial({color}));return basicCache.get(color);}
 const dark=material(0x172a32),glass=material(0x46747e,{metalness:.6,roughness:.16}),chrome=material(0xc4d9d4,{metalness:.8,roughness:.22});
 function piece(parent,x,y,z,w,h,d,mat,geometry=shared.box){const m=new T.Mesh(geometry,mat);m.position.set(x,y,z);m.scale.set(w,h,d);parent.add(m);return m;}
 function blob(parent,w,d,y=.025){const m=piece(parent,0,y,0,w,.01,d,new T.MeshBasicMaterial({color:0x102028,transparent:true,opacity:.28}));return m;}
 
+function batchRigidParts(group,exclude) {
+  const batches=new Map();
+  for(const part of [...group.children]){
+    if(!part.isMesh||exclude.includes(part))continue;
+    part.updateMatrix();const geometry=part.geometry.clone().applyMatrix4(part.matrix).toNonIndexed();
+    if(!batches.has(part.material))batches.set(part.material,[]);batches.get(part.material).push({part,geometry});
+  }
+  for(const [mat,entries] of batches){
+    if(entries.length<2){entries.forEach(e=>e.geometry.dispose());continue;}
+    const geometry=new T.BufferGeometry();
+    for(const name of ['position','normal','uv']){
+      const arrays=entries.map(e=>e.geometry.attributes[name]);if(arrays.some(a=>!a))continue;
+      const values=new Float32Array(arrays.reduce((n,a)=>n+a.array.length,0));let offset=0;
+      for(const a of arrays){values.set(a.array,offset);offset+=a.array.length;}
+      geometry.setAttribute(name,new T.BufferAttribute(values,arrays[0].itemSize));
+    }
+    for(const e of entries){group.remove(e.part);e.geometry.dispose();}
+    group.add(new T.Mesh(geometry,mat));
+  }
+}
+
 export function createCar(scene,x,z,color=0xcf6459,kind='Mariner GT') {
-  const mesh=new T.Group(),paint=material(color,{metalness:.48,roughness:.29});
+  const mesh=new T.Group(),paint=new T.MeshStandardMaterial({color,metalness:.48,roughness:.29});
   piece(mesh,0,.83,0,2.5,.75,4.9,paint);piece(mesh,0,.5,0,2.58,.22,4.5,dark);
   piece(mesh,0,1.47,-.15,2.08,.8,2.5,glass);piece(mesh,0,1.91,-.27,2.13,.13,2.3,paint);
   piece(mesh,0,1.43,-1.38,2.1,.13,.14,paint);piece(mesh,0,1.45,.99,2.14,.14,.16,paint);
@@ -19,18 +47,20 @@ export function createCar(scene,x,z,color=0xcf6459,kind='Mariner GT') {
   for(const x of [-1.23,1.23])for(const z of [-1.62,1.56]){const wheel=new T.Mesh(shared.wheel,dark);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.45,z);mesh.add(wheel);piece(mesh,x*1.01,.45,z,.05,.47,.47,chrome,shared.sphere);}
   const lights=[];
   for(const x of [-.86,.86]){
-    piece(mesh,x,.95,2.48,.55,.19,.05,new T.MeshBasicMaterial({color:0xffeac2}));
-    piece(mesh,x,.96,-2.48,.57,.21,.05,new T.MeshBasicMaterial({color:0xff5b62}));
+    piece(mesh,x,.95,2.48,.55,.19,.05,basic(0xffeac2));
+    piece(mesh,x,.96,-2.48,.57,.21,.05,basic(0xff5b62));
     const beam=piece(mesh,x,.033,8,2.6,.015,12,new T.MeshBasicMaterial({color:0xffe6bd,transparent:true,opacity:.08,depthWrite:false}));lights.push(beam);
   }
-  const flame=piece(mesh,0,.65,-3.2,.65,.45,1.6,new T.MeshBasicMaterial({color:0x64e9ff}));flame.visible=false;
+  const flame=new T.Group();mesh.add(flame);
+  for(const x of [-.7,.7]){const jet=new T.Mesh(new T.ConeGeometry(.19,1.6,8),basic(0x65ddff));jet.rotation.x=-Math.PI/2;jet.position.set(x,.53,-3.05);flame.add(jet);}
+  flame.visible=false;
   const bars=[];
   if(kind==='POLICE'){
     piece(mesh,0,1.96,-.2,1.7,.16,.48,dark);
     for(const [x,c] of [[-.5,0x4ebcff],[.5,0xff5268]])bars.push(piece(mesh,x,2.1,-.2,.62,.23,.4,new T.MeshBasicMaterial({color:c})));
     piece(mesh,0,.86,0,2.53,.38,1.8,material(0xf2f1df));
   }
-  blob(mesh,3.2,5.7);mesh.position.set(x,0,z);scene.add(mesh);
+  blob(mesh,3.2,5.7);batchRigidParts(mesh,[flame,...bars,...lights]);mesh.position.set(x,0,z);scene.add(mesh);
   return {mesh,x,z,y:0,heading:0,speed:0,vx:0,vz:0,health:100,nitro:1,paint,kind,flame,bars,lights,air:0,vy:0,stolen:false};
 }
 export function syncCar(c,time=0) {
@@ -78,7 +108,7 @@ export function createHelicopter(scene,x,z,color=0xe6aa68) {
   const tail=new T.Group();tail.position.set(.3,2,-4.9);mesh.add(tail);piece(tail,0,0,0,.06,2.2,.15,dark);
   const spot=new T.SpotLight(0xe6f5df,55,120,.32,.7,1.1);spot.position.set(0,.8,1);spot.target.position.set(0,-30,8);mesh.add(spot,spot.target);
   const cone=new T.Mesh(new T.ConeGeometry(6,30,24,1,true),new T.MeshBasicMaterial({color:0xc8efff,transparent:true,opacity:.035,depthWrite:false,side:T.DoubleSide}));cone.position.y=-14;mesh.add(cone);
-  blob(mesh,6,8);mesh.position.set(x,0,z);scene.add(mesh);
+  blob(mesh,6,8);mesh.scale.setScalar(1.45);mesh.position.set(x,0,z);scene.add(mesh);
   return {mesh,rotor,tail,spot,cone,x,z,y:0,heading:0,speed:0,health:140};
 }
 export function flyHelicopter(h,dt,input,game) {

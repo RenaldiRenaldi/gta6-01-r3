@@ -150,7 +150,7 @@ export function updateMission(game,dt) {
     }
     case 'escape':if(!game.police.seen)m.progress+=dt;else m.progress=0;if(m.progress>=14)completeMission(game);break;
     case 'extract': {
-      if(m.phase===0&&game.flying){m.phase=1;game.notify('MARA / ROOFTOP BEACON MARKED');}
+    if(m.phase===0&&game.flying){m.phase=1;game.notify('MARA / ROOFTOP BEACON MARKED');}
       const pad=game.city.pads[m.phase===1?1:0];
       if(m.phase>0&&game.flying&&distance(p,pad)<7&&Math.abs(p.y-pad.y)<3&&Math.abs(game.speed)<5){m.progress+=dt;if(m.progress>=6){if(m.phase===1){m.phase=2;m.progress=0;game.commitCrime('rooftop extraction',2);game.notify('LUZ ABOARD / TAKE US HOME');}else completeMission(game);}}
       else if(m.phase>0)m.progress=Math.max(0,m.progress-dt*.5);break;
@@ -158,7 +158,7 @@ export function updateMission(game,dt) {
     case 'hack':if(!m.started&&d<45)beginAmbush(game,3,j.goal);if(d<8&&!game.car&&game.input.held('f'))m.progress+=dt;if(m.progress>=12)completeMission(game);break;
     case 'heist': {
       if(m.phase===0){if(!m.started&&d<50)beginAmbush(game,6,j.goal);if(m.started&&game.combat.kills>=6&&d<9&&!game.car&&game.input.held('f'))m.progress+=dt;if(m.progress>=15){m.phase=1;game.save.cash+=500;game.commitCrime('port reserve heist',5);game.notify('VAULT OPEN / PHASE TWO / GET HOME UNSEEN',6);}}
-      else if(distance(p,{x:0,z:-64})<12&&!game.police.seen&&game.police.lost>8)completeMission(game);break;
+      else if(distance(p,{x:0,z:-64})<12&&!game.police.seen&&(game.police.lost>8||game.police.heat===0))completeMission(game);break;
     }
   }
 }
