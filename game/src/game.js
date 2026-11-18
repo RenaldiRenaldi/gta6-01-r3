@@ -123,13 +123,13 @@ function interact(){
   if(distance(game.player,heli)<7&&Math.abs(game.player.y-heli.y)<4){game.flying=heli;game.avatar.mesh.visible=false;game.notify('MARA’S KITE / H LIFT · W FORWARD · CTRL DESCEND');return;}
   const cars=[...game.garage,...game.traffic,...game.police.units].filter(c=>distance(c,game.player)<7&&c.health>0);
   cars.sort((a,b)=>distance(a,game.player)-distance(b,game.player));
-  if(cars[0]){game.car=cars[0];game.car.stolen=true;game.car.vx=0;game.car.vz=0;game.avatar.mesh.visible=false;game.inCover=false;if(!game.garage.includes(game.car)){game.commitCrime('vehicle theft',1);game.notify('VEHICLE TAKEN / '+game.car.kind);}else game.notify(game.car.kind+' / READY TO ROLL');return;}
+  if(cars[0]){game.car=cars[0];game.car.stolen=true;game.car.vx=0;game.car.vz=0;game.police.units=game.police.units.filter(c=>c!==game.car);if(!game.garage.includes(game.car)&&!game.traffic.includes(game.car))game.traffic.push(game.car);game.avatar.mesh.visible=false;game.inCover=false;if(!game.garage.includes(game.car)){game.commitCrime('vehicle theft',1);game.notify('VEHICLE TAKEN / '+game.car.kind);}else game.notify(game.car.kind+' / READY TO ROLL');return;}
   game.notify('NO RIDE NEARBY / FOLLOW THE MAP TO A SERVICE');
 }
 let recovery=0;
 function simulation(dt){
   game.time+=dt;game.shake=Math.max(0,game.shake-dt);game.slow=Math.max(0,game.slow-dt);game.hitmark=Math.max(0,game.hitmark-dt);game.muzzle=Math.max(0,game.muzzle-dt);
-  if(game.shopOpen||game.ui.briefOpen){updateEnvironment(game,dt);return;}
+  if((game.shopOpen||game.ui.briefOpen)&&game.health>0&&(game.car?.health??1)>0&&(game.flying?.health??1)>0){updateEnvironment(game,dt);return;}
   if(game.inCover&&![...game.traffic,...game.garage,...game.police.units].some(c=>distance(c,game.player)<6))game.inCover=false;
   const steer=(input.held('a')||input.held('arrowleft')?1:0)-(input.held('d')||input.held('arrowright')?1:0);
   const drive={forward:input.held('w')||input.held('arrowup'),back:input.held('s')||input.held('arrowdown'),steer,boost:input.held('shift'),brake:input.held(' '),up:input.held('h')||input.held(' '),down:input.held('control')};

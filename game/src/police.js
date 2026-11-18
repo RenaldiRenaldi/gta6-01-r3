@@ -96,5 +96,5 @@ export function updatePolice(game,dt) {
   else {p.lost+=dt;p.mode=p.lost>4?'SEARCHING LAST POSITION':'BREAKING SIGHT';}
   if(p.lost>10){p.heat=Math.max(0,p.heat-dt*.16);p.mode='COOLING DOWN';}
   if(stars>=4&&p.blockTimer<=0&&Math.abs(game.speed)>10){p.blockTimer=23;createRoadblock(game);}
-  for(let i=p.roadblocks.length-1;i>=0;i--){const b=p.roadblocks[i];b.age+=dt;if(b.age>48&&distance(b,game.player)>80){for(const o of b.props)game.scene.remove(o);for(const c of b.cars){game.scene.remove(c.mesh);p.units=p.units.filter(u=>u!==c);}p.roadblocks.splice(i,1);}}
+  for(let i=p.roadblocks.length-1;i>=0;i--){const b=p.roadblocks[i];b.age+=dt;if(b.age>48&&distance(b,game.player)>80){for(const o of b.props)game.scene.remove(o);for(const c of b.cars){if(!c.stolen)game.scene.remove(c.mesh);p.units=p.units.filter(u=>u!==c);}p.roadblocks.splice(i,1);}}
 }
